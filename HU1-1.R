@@ -1,7 +1,7 @@
 # Hausübung 1
 
 ### 1 a
-wtid <- read.csv("~/Documents/ExampleFolder/FP/wtid-20141002.csv", 
+wtid <- read.csv("wtid-20141002.csv", 
                  skip=1, header=TRUE)
 View(wtid)
 str(wtid)
@@ -26,11 +26,16 @@ wtid[wtid$country=="United States" & wtid$year=="2001", "p999"]
 
 ###
 wtid$cc <- complete.cases(wtid[,3:6])
-tapply(wtid$cc, wtid$country, sum)
+x <- tapply(wtid$cc, wtid$country, function(x) sum(x)>=20)
+str(x)
 
+wtid[x==TRUE]
 
+cnames <- names(x[x==TRUE])
 
-w <- wtid
-w$cc <- complete.cases(w[,3:6])
-t <- tapply(w$cc, w$country, sum)
-rm(t>19)
+wtid$country %in% cnames
+
+w <-wtid[wtid$country %in% cnames,]
+
+w <- droplevels(w)
+levels(w$country)
