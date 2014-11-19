@@ -10,16 +10,28 @@
 # f(x) = (a-1)/x_min * (x/x_min)^(-a)
 # Dichte Pareto-Vert.
 dpareto_1 <- function(x, shape, xmin) {
-  if (any(x<xmin) & length(x)==1){stop("x is not larger than xmin.")}
-  if (any(x<xmin) & length(x)>1 ){stop("not all x are larger than xmin.")}
+  if (is.numeric(x)==FALSE){stop("x must be numeric")}
+  if (is.numeric(shape)==FALSE){stop("shape must be numeric")}
+  if (is.numeric(xmin)==FALSE){stop("xmin must be numeric")}
+  
+  if (any(x<xmin) & length(x)==1){warning("x is not larger than xmin.")}
+  if (any(x<xmin) & length(x)>1 ){warning("not all x are larger than xmin.")}
   if (xmin<=0){stop("xmin must be larger zero")}
   if (shape<=1){stop("shape must be larger one")}
   
-  dp <- (shape - 1) / xmin * (x / xmin)^(-shape)
-  return(dp)
+  sapply(x, dpareto_1_support, shape=shape, xmin=xmin)
 }
 
-
+dpareto_1_support <- function(x, shape, xmin){
+  if (x<=xmin){
+    0
+  } 
+  else {
+   (shape - 1) / xmin * (x / xmin)^(-shape)
+  }
+}
+  
+  
 xvalues=seq(from=1.0, to=5, by=0.01)
 plot(xvalues, dpareto_1(x, shape=2, xmin=1), col="green", lwd=2, type="l", 
      cex.lab=1.5, cex.axis=1.5, xlim=c(0,5), ylim=c(0,3),frame.plot=FALSE, ylab="f(x; shape, xmin=1)")
