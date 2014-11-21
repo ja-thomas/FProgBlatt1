@@ -1,6 +1,6 @@
 # Fortgeschrittene Programmierung WS 2014/15
 # Hausübung 1 (due to 23.11.2014)
-# Janek Thomas, Philipp J. Rösch
+# JT, PJR
 
 library(ggplot2)
 
