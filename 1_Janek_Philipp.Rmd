@@ -1,0 +1,243 @@
+---
+title: "FoRt 2014/15: Hausübung 1"
+author: " Janek, Philipp "
+date: "`r Sys.Date()`"
+output: 
+  pdf_document
+---
+
+--- 
+
+```{r, Janek_Philipp_0, echo=TRUE}
+library(ggplot2)
+```
+
+---
+
+## Aufgabe 1: Rich get richer?
+
+### a)
+
+```{r, Janek_Philipp_1_a, echo = TRUE}
+# reads data from csv
+wtid <- read.csv("wtid-20141002.csv", 
+                 skip = 1, header = TRUE)
+```
+
+### b)
+
+```{r, Janek_Philipp_1_b, echo = TRUE}
+# keeps interested variables and renames them
+keeps <- c("Country", "Year", 
+           "P99.income.threshold", "P99.5.income.threshold", 
+           "P99.9.income.threshold", "P99.99.income.threshold")
+wtid <- wtid[keeps]
+
+colnames(wtid) <- c("country", "year", "p99", "p995", "p999", "p9999")
+
+# gives 99.99% quantile from the United States for 1981 and 2001
+subset(wtid, country == "United States" & (wtid$year == "1981" | wtid$year == "2001"), 
+       select = "p999", drop = TRUE)
+```
+
+### c)
+
+```{r, Janek_Philipp_1_c, echo = TRUE}
+# removes countries with less than 20 complete observations
+complete_cases_indicator <- complete.cases(wtid[ , 3:6])
+country_indicator <- tapply(complete_cases_indicator, wtid$country, 
+                            function(x) sum(x) >= 20)
+remaining_countries <- names(country_indicator[country_indicator == TRUE])
+wtid <-wtid[wtid$country %in% remaining_countries, ]
+
+# drops levels from removed countries
+wtid <- droplevels(wtid)
+levels(wtid$country)
+```
+
+---
+
+## Aufgabe 2: Paretoverteilung
+
+### a)
+
+```{r, Janek_Philipp_2_a, echo = TRUE}
+#' Pareto density
+#' 
+#' inputs:  x:      vector of quantiles
+#'          shape:  distribution parameter
+#'          xmin:   minimum value of x
+#' output:  gives the density of the Pareto distribution
+
+dpareto_1 <- function(x, shape, xmin) {
+  # input validation 
+  if (is.numeric(x) == FALSE) stop("<x> must be numeric")
+  if (is.numeric(shape) == FALSE) stop("<shape> must be numeric")
+  if (is.numeric(xmin) == FALSE) stop("<xmin> must be numeric")
+  if (xmin <= 0) stop("<xmin> must be larger zero")
+  if (shape <= 1) stop("<shape> must be larger one")
+  if (any(x < xmin) & length(x) == 1) {
+    warning("<x> is not larger than <xmin>")
+    }
+  if (any(x < xmin) & length(x) > 1) {
+    warning("not all <x> are larger than <xmin>")
+    }
+
+  # applys dpareto_1_support() to every value of x 
+  sapply(x, dpareto_1_support, shape = shape, xmin = xmin)
+}
+
+# support function applying Pareto density formula
+dpareto_1_support <- function(x, shape, xmin) { 
+  if (x <= xmin) {
+    0
+  } 
+  else {
+   (shape - 1) / xmin * (x / xmin)^(- shape)
+  }
+}
+  
+#' Pareto distribution function
+#' 
+#' inputs:  x:      vector of quantiles
+#'          shape:  distribution parameter
+#'          xmin:   minimum value of x
+#' output:  gives the distribution function of the Pareto distribution
+ 
+ppareto_1 <- function(x, shape, xmin) {
+  if (is.numeric(x) == FALSE) stop("<x> must be numeric")
+  if (is.numeric(shape) == FALSE) stop("<shape> must be numeric")
+  if (is.numeric(xmin) == FALSE) stop("<xmin> must be numeric")
+  if (xmin <= 0) stop("<xmin> must be larger zero")
+  if (shape <= 1) stop("<shape> must be larger one")
+  if (any(x < xmin) & length(x) == 1) {
+    warning("<x> is not larger than <xmin>")
+    }
+  if (any(x < xmin) & length(x) > 1) {
+    warning("not all <x> are larger than <xmin>")
+    }
+
+  # applys ppareto_1_support() to every value of x 
+  sapply(x, ppareto_1_support, shape = shape, xmin = xmin)
+  
+}
+
+# support function applying Pareto distribution function formula
+ppareto_1_support <- function(x, shape, xmin) {
+  if (x <= xmin) {
+    0
+  } 
+  else {
+    1 - (x / xmin)^(- shape + 1)
+  }
+}
+```
+
+### b)
+
+```{r, Janek_Philipp_2_b, echo = TRUE}
+# set graphic parameter: two plots side by side
+par(mfrow = c(1, 2))
+
+# set x values 
+xvalues <- seq(from = 0, to = 5, by = 0.01)
+
+# plots Pareto density 
+# using dpareto_1() and graphic features
+plot(xvalues, dpareto_1(xvalues, shape = 2, xmin = 1), 
+     col = "green", lwd = 2, type = "l", 
+     cex.lab = 1.1, cex.axis = 1.1, 
+     xlim = c(0, 5), ylim = c(0, 3),
+     xlab = "x", ylab = "f(x; shape, xmin=1)",
+     frame.plot = FALSE)
+
+lines(xvalues, dpareto_1(xvalues, shape = 3, xmin = 1), col = "blue", lwd = 2)
+lines(xvalues, dpareto_1(xvalues, shape = 4, xmin = 1), col = "red", lwd = 2)
+lines(xvalues, dpareto_1(xvalues, shape = 1e15, xmin = 1), 
+      col = "black", lwd = 2)
+
+legend("topright", 
+       c(expression(shape%->%infinity), "shape=4", "shape=3", "shape=2"),
+       col = c("black","red","blue","green"), cex = 0.9,
+       lty = c(1, 1, 1), lwd = c(2, 2, 2))
+
+# plots Pareto distribution function 
+# using ppareto_1() and graphic features
+plot(xvalues, ppareto_1(xvalues, shape = 2, xmin = 1), 
+     col = "green", lwd = 2, type = "l", 
+     cex.lab = 1.1, cex.axis = 1.1, 
+     xlim = c(0, 5), ylim = c(0, 1),
+     xlab = "x", ylab = "F(x; shape, xmin=1)",
+     frame.plot = FALSE)
+
+lines(xvalues, ppareto_1(xvalues, shape = 3, xmin = 1), col = "blue", lwd = 2)
+lines(xvalues, ppareto_1(xvalues, shape = 4, xmin = 1), col = "red", lwd = 2)
+lines(xvalues, ppareto_1(xvalues, shape = 1e15, xmin = 1), col = "black", lwd = 2)
+```
+
+---
+
+## Aufgabe 3: *quantile matching*
+
+### a) 
+
+```{r, Janek_Philipp_3_0, echo=TRUE, error=TRUE}
+wtid_clean <- readRDS("wtid_clean.rds")
+
+# check differneces between the data frames
+all.equal(wtid_clean, wtid)
+identical(wtid_clean, wtid)
+```
+
+Bis auf `levels` sind die beiden Datensätze identisch.
+
+```{r, Janek_Philipp_3_a, echo=TRUE}
+# set ratio according to description
+ratio <- wtid_clean$p99 / wtid_clean$p995
+
+#' input:   ratio: fraction of 99% quantile devided by 99.5% quantile
+#' output:  estimator for parameter shape (ahat)
+get_shape_ratio995 <- function(ratio) {
+  1 - log(2) / log(ratio)
+}
+
+# apply function get_shape_ratio995() and add it to wtid_clean
+wtid_clean <- transform(wtid_clean, shape_99_995 = get_shape_ratio995(p99 / p995))
+
+# plot estimator for France and United States
+ggplot(data = subset(wtid_clean, country %in% c("France", "United States"))) +
+       geom_line(aes(x = year, y = shape_99_995, color = country, lty = country)) +
+       ylab("shape estimate (from P99 / P99.5)") + 
+       theme_minimal(base_size=10)
+
+```
+
+### b) 
+
+```{r, Janek_Philipp_3_b, echo=TRUE}
+#' input:   p1:     first percentile
+#'          p2:     second percentile
+#'          factor: factor value in Pareto formula
+#' output:  estimator for parameter shape (ahat)
+get_shape_ratio <- function(p1, p2, factor) {
+  1 - log(factor) / log(p1 / p2)
+}
+
+# apply function get_shape_ratio() and add it to wtid_clean
+wtid_clean <- transform(wtid_clean, 
+                        shape_99_9999 = get_shape_ratio(p99, p9999, 100),
+                        shape_99_999 = get_shape_ratio(p99, p999, 10),
+                        shape_995_999 = get_shape_ratio(p995, p999, 5))
+
+# scatterplot matrix
+pairs(~ shape_99_995 + shape_99_9999 + shape_99_999 + shape_995_999, 
+      data = wtid_clean, col = rgb(0, 0, 0, 0.1), pch = 20,
+      xlim = c(2, 12), ylim = c(2, 12), cex = 0.3, cex.labels = 1.3)
+
+```
+
+---
+
+## Aufgabe 4: *quantile matching* Redux
+
+*missing*
