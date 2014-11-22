@@ -510,7 +510,7 @@ match_ratios_parallel <- function(data, cores = 3,
   processed_data <- subset(data, select=c(country, year))
   
   for(t in type){
-    processed_data[, paste0(t, "ShapeApprox")] <- mapply(match_ratios_wrapper, 
+    processed_data[, paste0(t, "ShapeApprox")] <- pmapply(match_ratios_wrapper, 
                                                          p99 = data$p99, 
                                                          p995 = data$p995, 
                                                          p999 = data$p999, 

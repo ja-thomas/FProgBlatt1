@@ -168,10 +168,15 @@ match_ratios(p_vec[1], p_vec[2], p_vec[3], p_vec[4], type = "relative")
 # some of these should fail (gracefully, with an informative error message!)
 # -- which ones?
 match_ratios(NA, NA, p_vec[3], p_vec[4])
+# fails because none of the first two quantiles can be missing
 match_ratios(NA, p_vec[2], NA, p_vec[4])
+# fails because none of the first two quantiles can be missing
 match_ratios(NA, p_vec[2], p_vec[3], NA)
+# fails because none of the first two quantiles can be missing
 match_ratios(p_vec[1], NA, NA, p_vec[4])
+# fails because none of the first two quantiles can be missing
 match_ratios(p_vec[1], p_vec[2], NA, NA)
+# works
 
 
 
@@ -179,7 +184,6 @@ match_ratios(p_vec[1], p_vec[2], NA, NA)
 #' input:   99&, 99.5%, 99.9% and 99.99% quantile of one year/country 
 #' combination
 #' output:  estimated shape value or a missing value in case of an error
-
 match_ratios_wrapper <- function(p99, p995, p999, p9999, type){
   tryCatch(
 {match_ratios(p99, p995, p999, p9999, type)$par},
@@ -265,7 +269,7 @@ match_ratios_parallel <- function(data, cores = 3,
   processed_data <- subset(data, select=c(country, year))
   
   for(t in type){
-    processed_data[, paste0(t, "ShapeApprox")] <- mapply(match_ratios_wrapper, 
+    processed_data[, paste0(t, "ShapeApprox")] <- pmapply(match_ratios_wrapper, 
                                                          p99 = data$p99, 
                                                          p995 = data$p995, 
                                                          p999 = data$p999, 
@@ -284,10 +288,6 @@ data_seqentially_calculated <- match_ratios_sequentiel(data)
 data_parallel_calculated <- match_ratios_parallel(data)
 
 identical(data_parallel_calculated, data_seqentially_calculated)
-
-
-library(ggplot2)
-
 
 ggplot(data = data_parallel_calculated) +
   geom_line(aes(x = year, y = quadraticShapeApprox, color = country, 
