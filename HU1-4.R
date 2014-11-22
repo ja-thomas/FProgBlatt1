@@ -6,7 +6,8 @@
 
 ##a)
 
-#' input:   99&, 99.5%, 99.9% and 99.99% quantile of one year/country combination
+#' input:   99&, 99.5%, 99.9% and 99.99% quantile of one year/country 
+#' combination
 #' output:  estimated shape value and convergence informations
 match_ratios <- function(p99, p995, p999, p9999){
   
@@ -53,7 +54,8 @@ match_ratios <- function(p99, p995, p999, p9999){
   
 }
 
-#' input:   shape estimate and 99&, 99.5%, 99.9% and 99.99% quantile of one year/country combination
+#' input:   shape estimate and 99&, 99.5%, 99.9% and 99.99% 
+#' quantile of one year/country combination
 #' output:   sum of loss from estimation and true values
 estimate_shape <- function(shape, p99, p995, p999, p9999){
   loss(p99, p995, shape, 2) +
@@ -63,7 +65,8 @@ estimate_shape <- function(shape, p99, p995, p999, p9999){
 }
 
 
-#' input:   two quantiles with the corresponding factor value and the shape estimate
+#' input:   two quantiles with the corresponding factor value and the shape 
+#' estimate
 #' output:  quadratic loss for two quantiles
 loss <- function(p1, p2, shape, factor){
   (((p1/p2)^(1-shape)) - factor)^2
@@ -73,7 +76,8 @@ match_ratios(10^6,2*10^6,10^7,10^8)
 
 ##b)
 
-#' input:   99&, 99.5%, 99.9% and 99.99% quantile of one year/country combination
+#' input:   99&, 99.5%, 99.9% and 99.99% quantile of one year/country 
+#' combination
 #' and type of loss function to use
 #' output:  estimated shape value and convergence informations
 match_ratios <- function(p99, p995, p999, p9999, 
@@ -122,8 +126,8 @@ match_ratios <- function(p99, p995, p999, p9999,
   
 }
 
-#' input:   shape estimate and 99&, 99.5%, 99.9% and 99.99% quantile of one year/country combination
-#' and the type of loss to use
+#' input:   shape estimate and 99&, 99.5%, 99.9% and 99.99% quantile of one 
+#' year/country combination and the type of loss to use
 #' output:   sum of loss from estimation and true values
 estimate_shape <- function(shape, p99, p995, p999, p9999, type){
   loss(p99, p995, shape, 2, type) +
@@ -132,8 +136,8 @@ estimate_shape <- function(shape, p99, p995, p999, p9999, type){
     loss(p99, p9999, shape, 100, type)
 }
 
-#' input:   two quantiles with the corresponding factor value and the shape estimate
-#' and type of loss to use
+#' input:   two quantiles with the corresponding factor value and the shape 
+#' estimate and type of loss to use
 #' output:  specified loss for two quantiles
 loss <- function(p1, p2, shape, factor, type){
   
@@ -172,7 +176,8 @@ match_ratios(p_vec[1], p_vec[2], NA, NA)
 
 
 #c)
-#' input:   99&, 99.5%, 99.9% and 99.99% quantile of one year/country combination
+#' input:   99&, 99.5%, 99.9% and 99.99% quantile of one year/country 
+#' combination
 #' output:  estimated shape value or a missing value in case of an error
 
 match_ratios_wrapper <- function(p99, p995, p999, p9999, type){
@@ -186,7 +191,17 @@ error = function(e){
 #' input:   dataset with country year and the quantiles
 #' output:  estimated shape values for each year/country
 match_ratios_sequentiel <- function(data, 
-                                    type = c("quadratic", "absolute", "relative")){
+                                    type = c("quadratic", 
+                                             "absolute", "relative")){
+  
+  if(!is.data.frame(data)){stop("<data> should be a dataframe")}
+  if(! "country" %in% colnames(data)){stop("No country variable found")}
+  if(! "year" %in% colnames(data)){stop("No year variable found")}
+  if(! "p99" %in% colnames(data)){stop("No variable for 99% quantile found")}
+  if(! "p995" %in% colnames(data)){stop("No variable for 99.5% quantile found")}
+  if(! "p999" %in% colnames(data)){stop("No variable for 99.9% quantile found")}
+  if(! "p9999" %in% colnames(data)){
+    stop("No variable for 99.99% quantile found")}
   
   type <- match.arg(type, several.ok = TRUE)
   
@@ -207,9 +222,20 @@ match_ratios_sequentiel <- function(data,
 #' input:   dataset with country year and the quantiles
 #' output:  estimated shape values for each year/country
 match_ratios_parallel <- function(data, cores = 3, 
-                                  type = c("quadratic", "absolute", "relative")){
+                                  type = c("quadratic", 
+                                           "absolute", "relative")){
   
-  library(parallel)
+  
+  require(parallel)
+  
+  if(!is.data.frame(data)){stop("<data> should be a dataframe")}
+  if(! "country" %in% colnames(data)){stop("No country variable found")}
+  if(! "year" %in% colnames(data)){stop("No year variable found")}
+  if(! "p99" %in% colnames(data)){stop("No variable for 99% quantile found")}
+  if(! "p995" %in% colnames(data)){stop("No variable for 99.5% quantile found")}
+  if(! "p999" %in% colnames(data)){stop("No variable for 99.9% quantile found")}
+  if(! "p9999" %in% colnames(data)){
+    stop("No variable for 99.99% quantile found")}
   
   type <- match.arg(type, several.ok = TRUE)
   
@@ -250,7 +276,9 @@ match_ratios_parallel <- function(data, cores = 3,
 }
 
 
-data <- subset(wtid_clean, select=c(country, year, p99, p995, p999, p9999), year %in% c(1913:2012) & country %in% c("United States", "France"))
+data <- subset(wtid_clean, select=c(country, year, p99, p995, p999, p9999), 
+               year %in% c(1913:2012) & 
+               country %in% c("United States", "France"))
 
 data_seqentially_calculated <- match_ratios_sequentiel(data)
 data_parallel_calculated <- match_ratios_parallel(data)
@@ -262,19 +290,22 @@ library(ggplot2)
 
 
 ggplot(data = data_parallel_calculated) +
-  geom_line(aes(x = year, y = quadraticShapeApprox, color = country, lty = country)) +
+  geom_line(aes(x = year, y = quadraticShapeApprox, color = country, 
+                lty = country)) +
   ylab("shape estimate") +
   ggtitle("Shape estimates: quadratic") + 
   theme_minimal(base_size=18)
 
 ggplot(data = data_parallel_calculated) +
-  geom_line(aes(x = year, y = absoluteShapeApprox, color = country, lty = country)) +
+  geom_line(aes(x = year, y = absoluteShapeApprox, color = country, 
+                lty = country)) +
   ylab("shape estimate") +
   ggtitle("Shape estimates: absolute") + 
   theme_minimal(base_size=18)
 
 ggplot(data = data_parallel_calculated) +
-  geom_line(aes(x = year, y = relativeShapeApprox, color = country, lty = country)) +
+  geom_line(aes(x = year, y = relativeShapeApprox, color = country, 
+                lty = country)) +
   ylab("shape estimate") +
   ggtitle("Shape estimates: relative") + 
   theme_minimal(base_size=18)
