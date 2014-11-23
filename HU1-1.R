@@ -25,16 +25,18 @@ wtid[wtid$country == "United States" & wtid$year == "2001", "p999"]
 #combined output with different methods
 wtid[wtid$country == "United States" & (wtid$year == "1981" | wtid$year == "2001"), "p999"]
 subset(wtid, country == "United States" & (wtid$year == "1981" | wtid$year == "2001"), 
-       select = "p999", drop = TRUE)
+       select = c("country","year","p999"))
 
 ### 1 c)
 
 # remove countries with less than 20 complete observations
 complete_cases_indicator <- complete.cases(wtid[ ,3:6])
 country_indicator <- tapply(complete_cases_indicator, wtid$country, function(x) sum(x) >= 20)
-remaining_countries <- names(country_indicator[country_indicator == TRUE])
+remaining_countries <- names(country_indicator[country_indicator])
+#countries with less than 20 complete observations:
+names(country_indicator[!country_indicator])
 wtid <-wtid[wtid$country %in% remaining_countries, ]
 
 # drop levels from removed countries
-wtid <- droplevels(wtid)
-levels(wtid$country)
+#wtid <- droplevels(wtid)
+#levels(wtid$country)
