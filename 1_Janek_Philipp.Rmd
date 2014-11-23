@@ -183,11 +183,8 @@ lines(xvalues, ppareto_1(xvalues, shape = 1e15, xmin = 1), col = "black", lwd = 
 wtid_clean <- readRDS("wtid_clean.rds")
 
 # check differneces between the data frames
-all.equal(wtid_clean, wtid)
 identical(wtid_clean, wtid)
 ```
-
-Bis auf `levels` sind die beiden Datensätze identisch.
 
 ```{r, Janek_Philipp_3_a, echo=TRUE}
 # set ratio according to description
